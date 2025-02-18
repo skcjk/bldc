@@ -21,6 +21,13 @@
 #include "utils_math.h"
 #include <math.h>
 
+// #define PID_CONTROLLER
+#define FTTC_CONTROLLER
+
+static inline float m_sign(float x) {
+    return (float)((x > 0.0) - (x < 0.0));
+}
+
 // See http://cas.ensmp.fr/~praly/Telechargement/Journaux/2010-IEEE_TPEL-Lee-Hong-Nam-Ortega-Praly-Astolfi.pdf
 void foc_observer_update(float v_alpha, float v_beta, float i_alpha, float i_beta,
 		float dt, observer_state *state, float *phase, motor_all_state_t *motor) {
@@ -485,8 +492,13 @@ void foc_run_pid_control_pos(bool index_found, float dt, motor_all_state_t *moto
 
 void foc_run_pid_control_speed(bool index_found, float dt, motor_all_state_t *motor) {
 	mc_configuration *conf_now = motor->m_conf;
+#ifdef PID_CONTROLLER
 	float p_term;
 	float d_term;
+#endif
+#ifdef FTTC_CONTROLLER
+	float u_term;
+#endif
 
 	// PID is off. Return.
 	if (motor->m_control_mode != CONTROL_MODE_SPEED) {
@@ -527,6 +539,7 @@ void foc_run_pid_control_speed(bool index_found, float dt, motor_all_state_t *mo
 		return;
 	}
 
+#ifdef PID_CONTROLLER
 	// Compute parameters
 	p_term = error * conf_now->s_pid_kp * (1.0 / 20.0);
 	d_term = (error - motor->m_speed_prev_error) * (conf_now->s_pid_kd / dt) * (1.0 / 20.0);
@@ -549,6 +562,14 @@ void foc_run_pid_control_speed(bool index_found, float dt, motor_all_state_t *mo
 	if (conf_now->s_pid_ki < 1e-9) {
 		motor->m_speed_i_term = 0.0;
 	}
+#endif
+
+#ifdef FTTC_CONTROLLER
+    u_term = sqrtf(fabsf(error)) * m_sign(error);
+    float output = u_term * conf_now->s_pid_kp * (1.0 / 20.0);
+    utils_truncate_number_abs(&output, 1.0);
+#endif
+
 
 	// Optionally disable braking
 	if (!conf_now->s_pid_allow_braking) {
