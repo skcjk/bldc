@@ -22,7 +22,8 @@
 #include <math.h>
 
 // #define PID_CONTROLLER
-#define FTTC_CONTROLLER
+// #define FTTC_CONTROLLER
+#define AITSMC
 
 static inline float m_sign(float x) {
     return (float)((x > 0.0) - (x < 0.0));
@@ -499,14 +500,9 @@ void foc_run_pid_control_speed(bool index_found, float dt, motor_all_state_t *mo
 #ifdef FTTC_CONTROLLER
 	float u_term;
 #endif
-
-	// PID is off. Return.
-	if (motor->m_control_mode != CONTROL_MODE_SPEED) {
-		motor->m_speed_i_term = 0.0;
-		motor->m_speed_prev_error = 0.0;
-		motor->m_speed_d_filter = 0.0;
-		return;
-	}
+#ifdef AITSMC
+	float s_term;
+#endif
 
 	if (conf_now->s_pid_ramp_erpms_s > 0.0) {
 		utils_step_towards((float*)&motor->m_speed_pid_set_rpm, motor->m_speed_command_rpm, conf_now->s_pid_ramp_erpms_s * dt);
@@ -530,6 +526,19 @@ void foc_run_pid_control_speed(bool index_found, float dt, motor_all_state_t *mo
 	}
 
 	float error = motor->m_speed_pid_set_rpm - rpm;
+
+	// PID is off. Return.
+	if (motor->m_control_mode != CONTROL_MODE_SPEED)
+	{
+#ifdef AITSMC
+		motor->m_speed_i_term = - error;
+#else
+		motor->m_speed_i_term = 0.0;
+#endif
+		motor->m_speed_prev_error = 0.0;
+		motor->m_speed_d_filter = 0.0;
+		return;
+	}
 
 	// Too low RPM set. Reset state, release motor and return.
 	if (fabsf(motor->m_speed_pid_set_rpm) < conf_now->s_pid_min_erpm) {
@@ -568,6 +577,14 @@ void foc_run_pid_control_speed(bool index_found, float dt, motor_all_state_t *mo
     u_term = sqrtf(fabsf(error)) * m_sign(error);
     float output = u_term * conf_now->s_pid_kp * (1.0 / 20.0);
     utils_truncate_number_abs(&output, 1.0);
+#endif
+
+#ifdef AITSMC
+	s_term = motor->m_speed_i_term + error;
+
+	// Integrator windup protection
+	motor->m_speed_i_term += m_sign(error) * pow((fabsf(error)), 1.0/3.0) * conf_now->s_pid_ki * dt;
+	utils_truncate_number_abs(&motor->m_speed_i_term, 1.0);
 #endif
 
 
