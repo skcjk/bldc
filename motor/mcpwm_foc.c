@@ -1145,6 +1145,13 @@ float mcpwm_foc_get_rpm(void) {
 }
 
 /**
+ * Same as above
+ */
+float mcpwm_foc_get_rpm_dot(void) {
+	return get_motor_now()->custom_speed_dot;
+}
+
+/**
  * Same as above, but uses the fast and noisier estimator.
  */
 float mcpwm_foc_get_rpm_fast(void) {

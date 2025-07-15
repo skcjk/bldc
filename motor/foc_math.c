@@ -517,6 +517,14 @@ void foc_run_pid_control_speed(bool index_found, float dt, motor_all_state_t *mo
 		break;
 	}
 
+	// calculate the dot of rpm
+	float z0_dot,z1_dot;
+	z0_dot = 60 * (motor->m_speed_pid_set_rpm - motor->custom_z0) + motor->custom_z1;
+	z1_dot = 600 * (motor->m_speed_pid_set_rpm - motor->custom_z0);
+	motor->custom_z0 += z0_dot * dt;
+	motor->custom_z1 += z1_dot * dt;
+	motor->custom_speed_dot = motor->custom_z1;
+
 	float error = motor->m_speed_pid_set_rpm - rpm;
 
 	// Too low RPM set. Reset state, release motor and return.
