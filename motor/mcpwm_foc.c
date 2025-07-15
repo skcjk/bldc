@@ -1152,6 +1152,13 @@ float mcpwm_foc_get_rpm_dot(void) {
 }
 
 /**
+ * Same as above
+ */
+float mcpwm_foc_get_cmd_rpm(void) {
+	return get_motor_now()->m_speed_pid_set_rpm;
+}
+
+/**
  * Same as above, but uses the fast and noisier estimator.
  */
 float mcpwm_foc_get_rpm_fast(void) {

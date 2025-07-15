@@ -1078,6 +1078,23 @@ float mc_interface_get_rpm_dot(void) {
 	return DIR_MULT * ret;
 }
 
+float mc_interface_get_cmd_rpm(void) {
+	float ret = 0.0;
+
+	switch (motor_now()->m_conf.motor_type) {
+	case MOTOR_TYPE_BLDC:
+	case MOTOR_TYPE_DC:
+	case MOTOR_TYPE_FOC:
+		ret = mcpwm_foc_get_cmd_rpm();
+		break;
+
+	default:
+		break;
+	}
+
+	return DIR_MULT * ret;
+}
+
 /**
  * Get the amount of amp hours drawn from the input source.
  *

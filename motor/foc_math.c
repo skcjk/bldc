@@ -493,6 +493,10 @@ void foc_run_pid_control_speed(bool index_found, float dt, motor_all_state_t *mo
 		motor->m_speed_i_term = 0.0;
 		motor->m_speed_prev_error = 0.0;
 		motor->m_speed_d_filter = 0.0;
+		motor->m_speed_pid_set_rpm = 0.0;
+		motor->custom_speed_dot = 0.0;
+		motor->custom_z0 = 0.0;
+		motor->custom_z1 = 0.0;
 		return;
 	}
 
@@ -519,8 +523,8 @@ void foc_run_pid_control_speed(bool index_found, float dt, motor_all_state_t *mo
 
 	// calculate the dot of rpm
 	float z0_dot,z1_dot;
-	z0_dot = 60 * (motor->m_speed_pid_set_rpm - motor->custom_z0) + motor->custom_z1;
-	z1_dot = 600 * (motor->m_speed_pid_set_rpm - motor->custom_z0);
+	z0_dot = 3 * (motor->m_speed_pid_set_rpm - motor->custom_z0) + motor->custom_z1;
+	z1_dot = 30 * (motor->m_speed_pid_set_rpm - motor->custom_z0);
 	motor->custom_z0 += z0_dot * dt;
 	motor->custom_z1 += z1_dot * dt;
 	motor->custom_speed_dot = motor->custom_z1;
