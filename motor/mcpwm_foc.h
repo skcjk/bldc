@@ -54,6 +54,8 @@ float mcpwm_foc_get_pid_pos_now(void);
 float mcpwm_foc_get_switching_frequency_now(void);
 float mcpwm_foc_get_sampling_frequency_now(void);
 float mcpwm_foc_get_rpm(void);
+float mcpwm_foc_get_custom_kp(void);
+float mcpwm_foc_get_custom_ki(void);
 float mcpwm_foc_get_rpm_dot(void);
 float mcpwm_foc_get_cmd_rpm(void);
 float mcpwm_foc_get_rpm_fast(void);

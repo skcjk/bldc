@@ -531,6 +531,30 @@ void foc_run_pid_control_speed(bool index_found, float dt, motor_all_state_t *mo
 
 	float error = motor->m_speed_pid_set_rpm - rpm;
 
+	// Calculate the kp,ki
+	if (conf_now->s_pid_kd_filter > 0.5){
+		float p_gain = 1.0;
+		float i_gain = 1.0;
+		p_gain = 8.0 + (fabsf(motor->custom_speed_dot) / 800.0);
+		if (p_gain < 8.0) {
+			p_gain = 8.0;
+		} else if (p_gain > 40.0) {
+			p_gain = 40.0;
+		}
+		motor->custom_kp = conf_now->s_pid_kp * p_gain;
+		i_gain = 6.0-(fabsf(error)/800.0);
+		if (i_gain < 0.0) {
+			i_gain = 0.0;
+		} else if (i_gain > 6.0) {
+			i_gain = 6.0;
+		}
+		motor->custom_ki = conf_now->s_pid_ki * i_gain;
+	}
+	else{
+		motor->custom_kp = conf_now->s_pid_kp;
+		motor->custom_ki = conf_now->s_pid_ki;
+	}
+
 	// Too low RPM set. Reset state, release motor and return.
 	if (fabsf(motor->m_speed_pid_set_rpm) < conf_now->s_pid_min_erpm) {
 		motor->m_speed_i_term = 0.0;
@@ -540,12 +564,13 @@ void foc_run_pid_control_speed(bool index_found, float dt, motor_all_state_t *mo
 	}
 
 	// Compute parameters
-	p_term = error * conf_now->s_pid_kp * (1.0 / 20.0);
+	p_term = error * motor->custom_kp * (1.0 / 20.0);
 	d_term = (error - motor->m_speed_prev_error) * (conf_now->s_pid_kd / dt) * (1.0 / 20.0);
 
 	// Filter D
-	UTILS_LP_FAST(motor->m_speed_d_filter, d_term, conf_now->s_pid_kd_filter);
-	d_term = motor->m_speed_d_filter;
+	// UTILS_LP_FAST(motor->m_speed_d_filter, d_term, conf_now->s_pid_kd_filter);
+	// d_term = motor->m_speed_d_filter;
+	d_term = 0.0;
 
 	// Store previous error
 	motor->m_speed_prev_error = error;
@@ -555,10 +580,10 @@ void foc_run_pid_control_speed(bool index_found, float dt, motor_all_state_t *mo
 	utils_truncate_number_abs(&output, 1.0);
 
 	// Integrator windup protection
-	motor->m_speed_i_term += error * conf_now->s_pid_ki * dt * (1.0 / 20.0);
+	motor->m_speed_i_term += error * motor->custom_ki * dt * (1.0 / 20.0);
 	utils_truncate_number_abs(&motor->m_speed_i_term, 1.0);
 
-	if (conf_now->s_pid_ki < 1e-9) {
+	if (motor->custom_ki < 1e-9) {
 		motor->m_speed_i_term = 0.0;
 	}
 

@@ -244,6 +244,8 @@ typedef struct {
 	float custom_speed_dot;
 	float custom_z0;
 	float custom_z1;
+	float custom_kp;
+	float custom_ki;
 	
 } motor_all_state_t;
 

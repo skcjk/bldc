@@ -64,6 +64,8 @@ float mc_interface_get_duty_cycle_set(void);
 float mc_interface_get_duty_cycle_now(void);
 float mc_interface_get_sampling_frequency_now(void);
 float mc_interface_get_rpm(void);
+float mc_interface_get_custom_kp(void);
+float mc_interface_get_custom_ki(void);
 float mc_interface_get_rpm_dot(void);
 float mc_interface_get_cmd_rpm(void);
 float mc_interface_get_amp_hours(bool reset);

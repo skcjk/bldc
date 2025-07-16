@@ -1061,6 +1061,41 @@ float mc_interface_get_rpm(void) {
 	return DIR_MULT * ret;
 }
 
+float mc_interface_get_custom_kp(void) {
+	float ret = 0.0;
+
+	switch (motor_now()->m_conf.motor_type) {
+	case MOTOR_TYPE_BLDC:
+	case MOTOR_TYPE_DC:
+	case MOTOR_TYPE_FOC:
+		ret = mcpwm_foc_get_custom_kp();
+		break;
+
+	default:
+		break;
+	}
+
+	return ret;
+}
+
+float mc_interface_get_custom_ki(void) {
+	float ret = 0.0;
+
+	switch (motor_now()->m_conf.motor_type) {
+	case MOTOR_TYPE_BLDC:
+	case MOTOR_TYPE_DC:
+	case MOTOR_TYPE_FOC:
+		ret = mcpwm_foc_get_custom_ki();
+		break;
+
+	default:
+		break;
+	}
+
+	return ret;
+}
+
+
 float mc_interface_get_rpm_dot(void) {
 	float ret = 0.0;
 

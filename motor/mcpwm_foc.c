@@ -1147,6 +1147,20 @@ float mcpwm_foc_get_rpm(void) {
 /**
  * Same as above
  */
+float mcpwm_foc_get_custom_kp(void) {
+	return get_motor_now()->custom_kp;
+}
+
+/**
+ * Same as above
+ */
+float mcpwm_foc_get_custom_ki(void) {
+	return get_motor_now()->custom_ki;
+}
+
+/**
+ * Same as above
+ */
 float mcpwm_foc_get_rpm_dot(void) {
 	return get_motor_now()->custom_speed_dot;
 }
